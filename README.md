@@ -35,6 +35,8 @@ And inject it into your controller like so!
     function myController(jsonPath) {
         /*jshint validthis:true */
         var vm = this;
+        var json = {/**/};
+
         vm.cheapBooks = jsonPath(json, '$..book[?(@.price<10)]');
     }
 
