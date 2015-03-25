@@ -18,7 +18,7 @@ module.exports = function (grunt) {
         'ngmin': {
             'dist': {
                 'src': 'dist/ng-jsonpath.js',
-                'dest': 'dist/ng-jsonpath.js'
+                'dest': 'dist/ng-jsonpath.min.js'
             }
         },
         'uglify': {
@@ -27,7 +27,7 @@ module.exports = function (grunt) {
                     'compress': {
                         unused: false
                     },
-                    'preserveComments': 'some'
+                    'preserveComments': false
                 },
                 'files': {
                     'dist/ng-jsonpath.min.js': 'dist/ng-jsonpath.js'
