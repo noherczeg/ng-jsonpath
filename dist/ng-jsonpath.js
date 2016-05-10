@@ -20,6 +20,7 @@
          */
         function jsonPath(obj, expr, arg) {
             var P = {
+                object: obj,
                 resultType: arg && arg.resultType || "VALUE",
                 result: [],
                 normalize: function(expr) {
@@ -32,8 +33,18 @@
                 },
                 asPath: function(path) {
                     var x = path.split(";"), p = "$";
-                    for (var i=1,n=x.length; i<n; i++)
-                        p += /^[0-9*]+$/.test(x[i]) ? ("["+x[i]+"]") : ("['"+x[i]+"']");
+                    for (var i=1,n=x.length; i<n; i++) {
+                        if(/^\+?\d+$/.test(x[i])) {
+                            var co = eval('P.object' + p.substring(1));
+                            if(co && Array !== co.constructor) {
+                                p += "['"+x[i]+"']";
+                            } else {
+                                p += "["+x[i]+"]";
+                            }
+                        } else {
+                            p += "['"+x[i]+"']";
+                        }
+                    }
                     return p;
                 },
                 store: function(p, v) {
@@ -62,24 +73,23 @@
                             for (var s=loc.split(/'?,'?/),i=0,n=s.length; i<n; i++)
                                 P.trace(s[i]+";"+x, val, path);
                         }
-                    }
-                    else
+                    } else {
                         P.store(path, val);
+                    }
                 },
                 walk: function(loc, expr, val, path, f) {
-                    if (val instanceof Array) {
+                    if (val &&  P.isArray(val)) {
                         for (var i=0,n=val.length; i<n; i++)
                             if (i in val)
                                 f(i,loc,expr,val,path);
-                    }
-                    else if (typeof val === "object") {
+                    } else if (typeof val === "object") {
                         for (var m in val)
                             if (val.hasOwnProperty(m))
                                 f(m,loc,expr,val,path);
                     }
                 },
                 slice: function(loc, expr, val, path) {
-                    if (val instanceof Array) {
+                    if (val && P.isArray(val)) {
                         var len=val.length, start=0, end=len, step=1;
                         loc.replace(/^(-?[0-9]*):(-?[0-9]*):?(-?[0-9]*)$/g, function($0,$1,$2,$3){start=parseInt($1||start);end=parseInt($2||end);step=parseInt($3||step);});
                         start = (start < 0) ? Math.max(0,start+len) : Math.min(len,start);
@@ -91,6 +101,9 @@
                 eval: function(x, _v, _vname) {
                     try { return $ && _v && eval(x.replace(/(^|[^\\])@/g, "$1_v").replace(/\\@/g, "@")); }  // issue 7 : resolved ..
                     catch(e) { throw new SyntaxError("jsonPath: " + e.message + ": " + x.replace(/(^|[^\\])@/g, "$1_v").replace(/\\@/g, "@")); }  // issue 7 : resolved ..
+                },
+                isArray: function(o) {
+                    return Object.prototype.toString.call(o) === '[object Array]';
                 }
             };
 
